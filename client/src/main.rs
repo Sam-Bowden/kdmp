@@ -36,6 +36,8 @@ fn build_ui(app: &Application) {
 
     let (sender, receiver) = MainContext::channel(PRIORITY_DEFAULT);
 
+    entry.set_placeholder_text(Some("Enter file path for song to play"));
+
     entry.connect_activate(clone!(@weak entry => move |_| {
         let content = entry.buffer().text();
         entry.set_text(""); 
