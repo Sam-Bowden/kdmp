@@ -68,7 +68,7 @@ Now you will be presented with the KDMP client, where you will be able to enter 
 
 | Operation | Command |
 | --- | --- |
-| Begin Track | b <NAME_OF_Track> |
+| Begin Track | b <TRACK> |
 | Stop | s |
 | Pause | p |
 | Resume | r |
