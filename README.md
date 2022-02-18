@@ -6,9 +6,9 @@ KDMP will operate in a client/server architecture. The user will open a dmenu in
 
 ## Compatibility
 
-KDMP is written with only Linux support in mind, however it will likely run on other Unix-like operating systems such as Mac OS or FreeBSD fine.
+KDMP is written with only Linux support in mind, however it will likely run on other Unix-like operating systems such as MacOS or FreeBSD.
 
-## Compile
+## Compilation
 
 As the client relies on GTK4, an installation of the GTK4 development package is required along with build essentials. As described on the gtk-rs website, these can be installed with the following commands on these major distributions.
 
