@@ -1,11 +1,10 @@
-mod daemon_ipc;
-mod config;
-
 use gtk4::prelude::*;
 use gtk4::{Application, ApplicationWindow, Entry};
 use gtk4::glib::{self, Continue, MainContext, PRIORITY_DEFAULT, clone};
 use std::thread;
-use std::path::PathBuf;
+
+mod request;
+mod config;
 
 fn main() {
     let app = Application::builder()
@@ -31,17 +30,13 @@ fn build_ui(app: &Application) {
     entry.set_placeholder_text(Some("Enter song"));
 
     entry.connect_activate(clone!(@weak entry => move |_| {
-        let mut music_path = PathBuf::new();
-        music_path.push(&config.music_directory);
-        music_path.push(entry.buffer().text());
-        music_path.set_extension("mp3");
+        let request = request::Request::new(entry.buffer().text(), &config);
         entry.set_text(""); 
 
         let sender = sender.clone();
 
         thread::spawn(move || {
-            let request = daemon_ipc::Request::new(music_path);
-            let msg = match daemon_ipc::Request::send_request(&request) {
+            let msg = match request::Request::send_request(&request) {
                 Ok(_) => "ok",
                 Err(e) => e,
             };
