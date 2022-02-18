@@ -41,3 +41,34 @@ cargo run --release -p daemon
 cargo run --release -p client
 ```
 The compiled binaries can be found in "target/release".
+
+## Setup with Sway and i3
+
+After compiling KDMP, open up your Sway/i3 config.
+
+Firstly, make Sway/i3 start the KDMP daemon when loaded:
+```
+exec <DAEMON_BINARY_PATH>
+```
+
+Then, make Sway/i3 start the KDMP client when your chosen key combination is pressed:
+```
+bindsym <KEY_BINDING> exec <CLIENT_BINARY_PATH>
+```
+
+Finally, reload the Sway/i3 configuration file to start using KDMP.
+
+## Using KDMP
+
+Once you have setup up KDMP in your Sway/i3 config, press your chosen key combination to start the client.
+
+The client will fail to load at first because the default music directory is not set. Navigate to your XDG_CONFIG_HOME directory (typically ~/.config/), then edit kdmp/kdmp.conf. Add your desired music directory and save.
+
+Now you will be presented with the KDMP client, where you will be able to enter the following commands to control your music:
+
+| Operation | Command |
+| --- | --- |
+| Begin Track | b <NAME_OF_Track> |
+| Stop | s |
+| Pause | p |
+| Resume | r |
