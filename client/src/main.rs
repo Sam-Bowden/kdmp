@@ -1,21 +1,11 @@
+mod daemon_ipc;
+mod config;
+
 use gtk4::prelude::*;
 use gtk4::{Application, ApplicationWindow, Entry};
 use gtk4::glib::{self, Continue, MainContext, PRIORITY_DEFAULT, clone};
-use std::os::unix::net::UnixStream;
 use std::thread;
-use bincode;
-use serde::{Serialize};
-
-#[derive(Serialize)]
-struct Request {
-    command: String,
-}
-
-impl Request {
-    fn new(content: String) -> Request {
-        Request { command: content }
-    }
-}
+use std::path::PathBuf;
 
 fn main() {
     let app = Application::builder()
@@ -26,7 +16,9 @@ fn main() {
     app.run();
 }
 
-fn build_ui(app: &Application) {
+fn build_ui(app: &Application) { 
+    let config = config::Config::load();
+
     let entry = Entry::builder()
         .margin_top(12)
         .margin_bottom(12)
@@ -36,16 +28,20 @@ fn build_ui(app: &Application) {
 
     let (sender, receiver) = MainContext::channel(PRIORITY_DEFAULT);
 
-    entry.set_placeholder_text(Some("Enter file path for song to play"));
+    entry.set_placeholder_text(Some("Enter song"));
 
     entry.connect_activate(clone!(@weak entry => move |_| {
-        let content = entry.buffer().text();
+        let mut music_path = PathBuf::new();
+        music_path.push(&config.music_directory);
+        music_path.push(entry.buffer().text());
+        music_path.set_extension("mp3");
         entry.set_text(""); 
+
         let sender = sender.clone();
 
         thread::spawn(move || {
-            let request = Request::new(content);
-            let msg = match send_request(request) {
+            let request = daemon_ipc::Request::new(music_path);
+            let msg = match daemon_ipc::Request::send_request(&request) {
                 Ok(_) => "ok",
                 Err(e) => e,
             };
@@ -73,16 +69,4 @@ fn build_ui(app: &Application) {
         .build();
 
     window.present();
-}
-
-fn send_request(request: Request) -> Result<(), &'static str> {
-    let stream = match UnixStream::connect("/tmp/kdmp.sock") {
-        Ok(s) => s,
-        Err(_) => return Err("Failed to connect to daemon"),
-    };
-
-    match bincode::serialize_into(&stream, &request) {
-        Ok(()) => Ok(()),
-        Err(_) => Err("Failed to communicate to daemon"),
-    }
 }

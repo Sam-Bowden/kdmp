@@ -7,10 +7,11 @@ use std::thread;
 use rodio::{Decoder, OutputStream, Sink};
 use std::fs::File;
 use std::io::BufReader;
+use std::path::PathBuf;
 
 #[derive(Deserialize)]
 struct Request {
-    command: String,
+    command: PathBuf,
 }
 
 fn main() {
@@ -30,7 +31,7 @@ fn main() {
     }
 }
 
-fn play_music(request: String) {
+fn play_music(request: PathBuf) {
     let (_stream, stream_handle) = OutputStream::try_default().unwrap();
     let sink = Sink::try_new(&stream_handle).unwrap();
     let file = File::open(&request).unwrap();
