@@ -16,22 +16,22 @@ impl Request {
     pub fn new(content: String, config: &config::Config) -> Request {
         let mut commands = content.split(" ");
 
-        match commands.next().unwrap() {
+        match commands.next() {
+            //Stop
+            Some("s") => Request::Stop,
+            //Pause
+            Some("p") => Request::Pause,
+            //Resume
+            Some("r") => Request::Resume, 
             //Begin
-            "b" => {
+            Some(s) => {
                 let mut music_path = PathBuf::new();
                 music_path.push(&config.music_directory);
-                music_path.push(commands.next().expect("Missing song"));
+                music_path.push(s);
                 music_path.set_extension("mp3");
                 Request::Begin(music_path)
             }
-            //Stop
-            "s" => Request::Stop,
-            //Pause
-            "p" => Request::Pause,
-            //Resume
-            "r" => Request::Resume, 
-            _ => panic!("Invalid request"),
+            None => panic!("No command"),
         }
     }
     pub fn send_request(&self) -> Result<(), &'static str> {

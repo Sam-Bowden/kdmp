@@ -27,7 +27,7 @@ fn build_ui(app: &Application) {
 
     let (sender, receiver) = MainContext::channel(PRIORITY_DEFAULT);
 
-    entry.set_placeholder_text(Some("Enter song"));
+    entry.set_placeholder_text(Some("Enter command"));
 
     entry.connect_activate(clone!(@weak entry => move |_| {
         let request = request::Request::new(entry.buffer().text(), &config);
