@@ -36,9 +36,16 @@ fn main() {
                 if sink.len() > 0 {
                     sink.skip_one();
                 }
-                let file = File::open(&p).unwrap();
-                let source = Decoder::new(BufReader::new(file)).unwrap();
-                sink.append(source);
+
+                match File::open(&p) {
+                    Ok(f) => {
+                        let source = Decoder::new(BufReader::new(f)).unwrap();
+                        sink.append(source);
+                    }
+                    Err(_) => {
+                        println!("Error: File does not exist")
+                    }
+                }
             }
             Request::Stop => {
                 if sink.len() > 0 {
@@ -50,4 +57,3 @@ fn main() {
         }
     }
 }
-
