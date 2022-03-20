@@ -2,14 +2,15 @@ use std::fs::File;
 use std::io::BufReader;
 use serde::Deserialize;
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Clone)]
 pub struct Config {
-    pub music_directory: String,
+    pub track_directory: String,
 }
 
 impl Config {
     pub fn load() -> Config {
         let xdg_dirs = xdg::BaseDirectories::with_prefix("kdmp").unwrap();
+
         let config_file_name = "kdmp.conf";
 
         let config_file_path = match xdg_dirs.find_config_file(config_file_name) {

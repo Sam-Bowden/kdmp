@@ -1,8 +1,9 @@
 use serde::Deserialize;
+use std::path::PathBuf;
 
 #[derive(Deserialize)]
-enum Request {
-    Begin(PathBuf),
+pub enum Request {
+    PlayTrack(PathBuf),
     Stop,
     Pause,
     Resume,

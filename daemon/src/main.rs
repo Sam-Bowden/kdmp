@@ -2,19 +2,12 @@ use std::os::unix::net::UnixListener;
 use std::path::Path;
 use std::fs;
 use bincode;
-use serde::Deserialize;
 use rodio::{Decoder, OutputStream, Sink};
 use std::fs::File;
 use std::io::BufReader;
-use std::path::PathBuf;
+use request::Request;
 
-#[derive(Deserialize)]
-enum Request {
-    Begin(PathBuf),
-    Stop,
-    Pause,
-    Resume,
-}
+mod request;
 
 fn main() {
     let socket = Path::new("/tmp/kdmp.sock");
@@ -32,20 +25,13 @@ fn main() {
         let request: Request = bincode::deserialize_from(&stream.unwrap()).unwrap();
 
         match request {
-            Request::Begin(p) => {
+            Request::PlayTrack(p) => {
                 if sink.len() > 0 {
                     sink.skip_one();
                 }
-
-                match File::open(&p) {
-                    Ok(f) => {
-                        let source = Decoder::new(BufReader::new(f)).unwrap();
-                        sink.append(source);
-                    }
-                    Err(_) => {
-                        println!("Error: File does not exist")
-                    }
-                }
+                let file = File::open(&p).unwrap();
+                let source = Decoder::new(BufReader::new(file)).unwrap();
+                sink.append(source);
             }
             Request::Stop => {
                 if sink.len() > 0 {
