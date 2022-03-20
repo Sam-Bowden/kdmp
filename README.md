@@ -6,30 +6,13 @@ KDMP will operate in a client/server architecture. The user will open a dmenu in
 
 ## Compatibility
 
-KDMP is written with only Linux support in mind, however it will likely run on other Unix-like operating systems such as MacOS or FreeBSD.
+KDMP is written with only Linux support in mind.
 
 ## Compilation
 
-As the client relies on GTK4, an installation of the GTK4 development package is required along with build essentials. As described on the gtk-rs website, these can be installed with the following commands on these major distributions.
+A rustup installation is required to compile. The instructions for doing this can be found at https://www.rust-lang.org/tools/install.
 
-Fedora based:
-```bash
-sudo dnf install gtk4-devel gcc
-```
-
-Debian based:
-```bash
-sudo apt install libgtk-4-dev build-essential
-```
-
-Arch based:
-```bash
-sudo pacman -S gtk4 base-devel
-```
-
-A rustup installation is also required. The instructions for doing this can be found at https://www.rust-lang.org/tools/install.
-
-Once these are both installed, clone this repository and build using cargo:
+Once rustup is installed, clone this repository and build using cargo:
 ```bash
 git clone https://github.com/Sam-Bowden/kdmp
 cd kdmp
@@ -62,13 +45,13 @@ Finally, reload the Sway/i3 configuration file to start using KDMP.
 
 Once you have setup up KDMP in your Sway/i3 config, press your chosen key combination to start the client.
 
-The client will fail to load at first because the default music directory is not set. Navigate to your XDG_CONFIG_HOME directory (typically ~/.config/), then edit kdmp/kdmp.conf. Add your desired music directory and save.
+The client might fail to load at first because the default music directory is not set. Navigate to your XDG_CONFIG_HOME directory (typically ~/.config/), then edit kdmp/kdmp.conf. Add your desired music directory and save.
 
 Now you will be presented with the KDMP client, where you will be able to enter the following commands to control your music:
 
 | Operation | Command |
 | --- | --- |
-| Begin Track | <TRACK_NAME> |
+| Play Track | pt <TRACK_NAME> |
 | Stop | s |
 | Pause | p |
 | Resume | r |
