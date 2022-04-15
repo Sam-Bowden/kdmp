@@ -6,8 +6,10 @@ use rodio::{Decoder, OutputStream, Sink};
 use std::fs::File;
 use std::io::BufReader;
 use request::Request;
+use playlist::PlayList;
 
 mod request;
+mod playlist;
 
 fn main() {
     let socket = Path::new("/tmp/kdmp.sock");
@@ -26,20 +28,42 @@ fn main() {
 
         match request {
             Request::PlayTrack(p) => {
-                if sink.len() > 0 {
+                sink.clear();
+                let track_file = File::open(&p).unwrap();
+                let source = Decoder::new(BufReader::new(track_file)).unwrap();
+                sink.append(source);
+                if sink.len() == 2 {
                     sink.skip_one();
                 }
-                let file = File::open(&p).unwrap();
-                let source = Decoder::new(BufReader::new(file)).unwrap();
-                sink.append(source);
+                sink.play();
+            }
+            Request::PlayList(p) => {
+                sink.clear();
+                let list_file = File::open(&p).unwrap();
+                let list_reader = BufReader::new(list_file);
+                let list: PlayList = serde_json::from_reader(list_reader).expect("JSON for PlayList incorrectly formatted");
+                for track in &list.tracks {
+                    let track_file = File::open(&track).unwrap();
+                    let source = Decoder::new(BufReader::new(track_file)).unwrap();
+                    sink.append(source);
+                }
+                if sink.len() > list.tracks.len() {
+                    sink.skip_one();
+                }
+                sink.play();
             }
             Request::Stop => {
-                if sink.len() > 0 {
-                    sink.skip_one();
-                }
+                sink.clear();
             }
             Request::Pause => sink.pause(),
             Request::Resume => sink.play(),
+            Request::Next => {
+                if sink.len() > 1 {
+                    sink.skip_one();
+                } else {
+                    sink.pause();
+                }
+            }
         }
     }
 }

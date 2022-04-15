@@ -6,9 +6,11 @@ use std::path::PathBuf;
 #[derive(Serialize)]
 pub enum Request {
     PlayTrack(PathBuf),
+    PlayList(PathBuf),
     Stop,
     Pause,
     Resume,
+    Next,
 }
 
 impl Request {

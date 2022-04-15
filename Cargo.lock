@@ -556,6 +556,7 @@ dependencies = [
  "bincode",
  "rodio",
  "serde",
+ "serde_json",
 ]
 
 [[package]]

@@ -4,7 +4,7 @@ use serde::Deserialize;
 
 #[derive(Deserialize, Clone)]
 pub struct Config {
-    pub track_directory: String,
+    pub music_directory: String,
 }
 
 impl Config {
