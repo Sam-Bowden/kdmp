@@ -1,5 +1,9 @@
 # KDMP
 
+<p align="center">
+  <img src="demo.gif" alt="animated" />
+</p>
+
 A music player in development that focuses on being purely keyboard driven. Its main focus is to allow the user to control playback of music in minimal time, allowing them to focus on their work. It is designed and intended to be used with a tiling window manager such as Sway or i3.
 
 KDMP will operate in a client/server architecture. The user will open a dmenu inspired client, which will issue a music oriented command to the server daemon, such as playing or pausing a song. Once the command has been sent, the client will immediately close.
