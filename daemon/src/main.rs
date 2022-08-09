@@ -1,69 +1,60 @@
 use std::os::unix::net::UnixListener;
 use std::path::Path;
 use std::fs;
-use bincode;
-use rodio::{Decoder, OutputStream, Sink};
+use playlist::PlayList;
 use std::fs::File;
 use std::io::BufReader;
 use request::Request;
-use playlist::PlayList;
+use sink_thread_manager::SinkThreadManager;
 
 mod request;
 mod playlist;
+mod sink_thread_manager;
 
 fn main() {
+    //Open socket to receive requests from client.
     let socket = Path::new("/tmp/kdmp.sock");
-
     if socket.exists() {
         fs::remove_file(&socket).expect("Error deleting existing socket");
     }
-
     let listener = UnixListener::bind(&socket).expect("Error connecting to socket");
 
-    let (_stream, stream_handle) = OutputStream::try_default().unwrap();
-    let sink = Sink::try_new(&stream_handle).unwrap();
+    let mut stm = SinkThreadManager::new();
 
+    //Loop over and process incoming requests from client
     for stream in listener.incoming() {
         let request: Request = bincode::deserialize_from(&stream.unwrap()).unwrap();
 
         match request {
             Request::PlayTrack(p) => {
-                sink.clear();
-                let track_file = File::open(&p).unwrap();
-                let source = Decoder::new(BufReader::new(track_file)).unwrap();
-                sink.append(source);
-                if sink.len() == 2 {
-                    sink.skip_one();
-                }
-                sink.play();
+                stm.play_tracks(vec![p]);
             }
             Request::PlayList(p) => {
-                sink.clear();
                 let list_file = File::open(&p).unwrap();
                 let list_reader = BufReader::new(list_file);
                 let list: PlayList = serde_json::from_reader(list_reader).expect("JSON for PlayList incorrectly formatted");
-                for track in &list.tracks {
-                    let track_file = File::open(&track).unwrap();
-                    let source = Decoder::new(BufReader::new(track_file)).unwrap();
-                    sink.append(source);
-                }
-                if sink.len() > list.tracks.len() {
-                    sink.skip_one();
-                }
-                sink.play();
+                stm.play_tracks(list.tracks);
             }
             Request::Stop => {
-                sink.clear();
+                if let Some(s) = &*stm.current_sink.lock().unwrap() {
+                    s.stop();
+                }
             }
-            Request::Pause => sink.pause(),
-            Request::Resume => sink.play(),
+            Request::Pause => {
+                if let Some(s) = &*stm.current_sink.lock().unwrap() {
+                    s.pause();
+                }
+            }
+            Request::Resume => {
+                if let Some(s) = &*stm.current_sink.lock().unwrap() {
+                    s.play();
+                }
+            }
             Request::Next => {
-                if sink.len() > 1 {
-                    sink.skip_one();
-                } else {
-                    sink.pause();
+                if let Some(s) = &*stm.current_sink.lock().unwrap() {
+                    s.skip_one();
                 }
             }
         }
-    }
+   }
 }
