@@ -3,8 +3,7 @@ use std::path::PathBuf;
 
 #[derive(Deserialize)]
 pub enum Request {
-    PlayTrack(PathBuf),
-    PlayList(PathBuf),
+    Play(PathBuf),
     Stop,
     Pause,
     Resume,

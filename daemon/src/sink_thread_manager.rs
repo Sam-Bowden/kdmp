@@ -2,10 +2,10 @@ use rodio::{Decoder, OutputStream, Sink};
 use std::fs::File;
 use std::io::BufReader;
 use std::path::PathBuf;
-use std::sync::{Mutex, Arc, mpsc};
+use std::sync::mpsc::Sender;
+use std::sync::{mpsc, Arc, Mutex};
 use std::thread;
 use std::time::Duration;
-use std::sync::mpsc::Sender;
 
 pub struct SinkThreadManager {
     pub current_sink: Arc<Mutex<Option<Sink>>>,

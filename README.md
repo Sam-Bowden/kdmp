@@ -1,12 +1,8 @@
 # KDMP
 
-<p align="center">
-  <img src="demo.gif" alt="animated" />
-</p>
+A music player in development that focuses on being purely keyboard driven. The main focus is to allow a user to control playback of music in minimal time, allowing them to focus on their work. It is designed and intended to be used with a tiling window manager such as Sway or i3.
 
-A music player in development that focuses on being purely keyboard driven. Its main focus is to allow the user to control playback of music in minimal time, allowing them to focus on their work. It is designed and intended to be used with a tiling window manager such as Sway or i3.
-
-KDMP will operate in a client/server architecture. The user will open a dmenu inspired client, which will issue a music oriented command to the server daemon, such as playing or pausing a song. Once the command has been sent, the client will immediately close.
+KDMP operates in a client/server architecture. The user opens a dmenu inspired client, which issues a music oriented command to the server daemon, such as playing or pausing a song.
 
 ## Compatibility
 
@@ -14,33 +10,29 @@ KDMP is written with only Linux support in mind.
 
 ## Compilation
 
-A rustup installation is required to compile. The instructions for doing this can be found at https://www.rust-lang.org/tools/install.
+A Rustup installation is required to compile. The instructions for doing this can be found at https://www.rust-lang.org/tools/install.
 
-Once rustup is installed, clone this repository and build using cargo:
+Once Rustup is installed, clone this repository and build using cargo:
 ```bash
-git clone https://github.com/Sam-Bowden/kdmp
+git clone https://github.com/Samuel-Bowden/kdmp
 cd kdmp
-cargo build --release
+cargo install --path client
+cargo install --path daemon 
 ```
-The client and the server daemon can then be started using:
-```bash
-cargo run --release -p daemon
-cargo run --release -p client
-```
-The compiled binaries can be found in "target/release".
 
 ## Setup with Sway and i3
 
-After compiling KDMP, open up your Sway/i3 config.
+After installing KDMP, open up your Sway/i3 config.
 
 Firstly, make Sway/i3 start the KDMP daemon when loaded:
 ```
-exec <DAEMON_BINARY_PATH>
+exec kdmp-daemon
 ```
 
 Then, make Sway/i3 start the KDMP client when your chosen key combination is pressed:
 ```
-bindsym <KEY_BINDING> exec <CLIENT_BINARY_PATH>
+bindsym <KEY_BINDING> exec kdmp-client
+# E.g. bindsym $mod+Shift+t exec kdmp-client
 ```
 
 Finally, reload the Sway/i3 configuration file to start using KDMP.
@@ -49,15 +41,12 @@ Finally, reload the Sway/i3 configuration file to start using KDMP.
 
 Once you have setup up KDMP in your Sway/i3 config, press your chosen key combination to start the client.
 
-The client might fail to load at first because the default music directory is not set. Navigate to your XDG_CONFIG_HOME directory (typically ~/.config/), then edit kdmp/kdmp.conf. Add your desired music directory and save.
-
 Now you will be presented with the KDMP client, where you will be able to enter the following commands to control your music:
 
 | Operation | Command |
 | --- | --- |
-| Play Track | pt <TRACK_NAME> |
-| Play List | pl <LIST_NAME> |
+| Play | pl <LOCATION> |
 | Stop | s |
-| Pause | p |
+| Pause | ps |
 | Resume | r |
-| Next (Skip) | n |
+| Next | n |

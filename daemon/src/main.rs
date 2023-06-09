@@ -1,14 +1,10 @@
-use std::os::unix::net::UnixListener;
-use std::path::Path;
-use std::fs;
-use playlist::PlayList;
-use std::fs::File;
-use std::io::BufReader;
 use request::Request;
 use sink_thread_manager::SinkThreadManager;
+use std::fs;
+use std::os::unix::net::UnixListener;
+use std::path::Path;
 
 mod request;
-mod playlist;
 mod sink_thread_manager;
 
 fn main() {
@@ -26,14 +22,8 @@ fn main() {
         let request: Request = bincode::deserialize_from(&stream.unwrap()).unwrap();
 
         match request {
-            Request::PlayTrack(p) => {
+            Request::Play(p) => {
                 stm.play_tracks(vec![p]);
-            }
-            Request::PlayList(p) => {
-                let list_file = File::open(&p).unwrap();
-                let list_reader = BufReader::new(list_file);
-                let list: PlayList = serde_json::from_reader(list_reader).expect("JSON for PlayList incorrectly formatted");
-                stm.play_tracks(list.tracks);
             }
             Request::Stop => {
                 if let Some(s) = &*stm.current_sink.lock().unwrap() {
@@ -56,5 +46,5 @@ fn main() {
                 }
             }
         }
-   }
+    }
 }

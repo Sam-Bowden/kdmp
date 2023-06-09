@@ -1,12 +1,13 @@
-use std::os::unix::net::UnixStream;
+use crate::error_menu::ErrorMenu;
+use crate::event::Event;
 use bincode;
 use serde::Serialize;
+use std::os::unix::net::UnixStream;
 use std::path::PathBuf;
 
 #[derive(Serialize)]
 pub enum Request {
-    PlayTrack(PathBuf),
-    PlayList(PathBuf),
+    Play(PathBuf),
     Stop,
     Pause,
     Resume,
@@ -14,15 +15,14 @@ pub enum Request {
 }
 
 impl Request {
-    pub fn send(&self) -> Result<(), &'static str> {
-        let stream = match UnixStream::connect("/tmp/kdmp.sock") {
-            Ok(s) => s,
-            Err(_) => return Err("Failed to connect to daemon"),
+    pub fn send(&self) -> Event {
+        let Ok(stream) = UnixStream::connect("/tmp/kdmp.sock") else {
+            return Event::OpenErrorMenu(ErrorMenu::FailedToConnectToDaemon);
         };
 
         match bincode::serialize_into(&stream, &self) {
-            Ok(()) => Ok(()),
-            Err(_) => Err("Failed to communicate to daemon"),
+            Ok(()) => Event::None,
+            Err(_) => Event::OpenErrorMenu(ErrorMenu::FailedToConnectToDaemon),
         }
     }
 }
