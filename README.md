@@ -1,23 +1,22 @@
 # KDMP
 
+https://github.com/Samuel-Bowden/kdmp/assets/91887909/ae21fd81-8cf3-47b2-99f8-bb49a548ff41
+
 A music player in development that focuses on being purely keyboard driven. The main focus is to allow a user to control playback of music in minimal time, allowing them to focus on their work. It is designed and intended to be used with a tiling window manager such as Sway or i3.
 
-KDMP operates in a client/server architecture. The user opens a dmenu inspired client, which issues a music oriented command to the server daemon, such as playing or pausing a song.
+KDMP operates in a client/server architecture. The user opens a dmenu inspired client, which issues a music oriented command to the KDMP daemon, such as playing or pausing a song, which runs in the background without a client needing to be open.
 
 ## Compatibility
 
 KDMP is written with only Linux support in mind.
 
-## Compilation
+## Compilation and Installation
 
-A Rustup installation is required to compile. The instructions for doing this can be found at https://www.rust-lang.org/tools/install.
+A Rustup installation is required to compile and install KDMP. Instructions for doing this can be found at https://www.rust-lang.org/tools/install.
 
-Once Rustup is installed, clone this repository and build using cargo:
+Once Rustup is installed, compile and install KDMP using Cargo with the following command:
 ```bash
-git clone https://github.com/Samuel-Bowden/kdmp
-cd kdmp
-cargo install --path client
-cargo install --path daemon 
+cargo install --git https://github.com/Samuel-Bowden/kdmp kdmp-client kdmp-daemon
 ```
 
 ## Setup with Sway and i3
