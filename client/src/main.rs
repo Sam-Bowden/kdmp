@@ -1,3 +1,5 @@
+use std::time::{Duration, Instant};
+
 use command_menu::CommandMenu;
 use error_menu::ErrorMenu;
 use event::Event;
@@ -8,10 +10,10 @@ use iced_native::command::Action;
 use iced_native::{subscription, Command, Subscription};
 
 mod command_menu;
+mod communication;
 mod error_menu;
 mod event;
 mod option;
-mod request;
 
 fn main() -> iced::Result {
     KDMP::run(Settings {
@@ -39,6 +41,7 @@ enum Message {
     Command(command_menu::Message),
     Error(error_menu::Message),
     EventOccurred(iced_native::Event),
+    Refresh(Instant),
 }
 
 impl Application for KDMP {
@@ -77,6 +80,12 @@ impl Application for KDMP {
             (Message::EventOccurred(e), CurrentView::ErrorMenu(em)) => {
                 em.update(error_menu::Message::EventOccurred(e))
             }
+            (Message::EventOccurred(e), CurrentView::CommandMenu(cm)) => {
+                cm.update(command_menu::Message::EventOccurred(e))
+            }
+            (Message::Refresh(_), CurrentView::CommandMenu(cm)) => {
+                cm.update(command_menu::Message::Refresh)
+            }
             _ => return Command::none(),
         } {
             Event::OpenErrorMenu(e) => {
@@ -102,6 +111,9 @@ impl Application for KDMP {
     }
 
     fn subscription(&self) -> Subscription<Self::Message> {
-        subscription::events().map(Message::EventOccurred)
+        Subscription::batch([
+            subscription::events().map(Message::EventOccurred),
+            iced::time::every(Duration::from_millis(500)).map(Message::Refresh),
+        ])
     }
 }

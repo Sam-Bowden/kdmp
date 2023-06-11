@@ -24,7 +24,7 @@ impl ErrorMenu {
             .push(text("Error!").style(color!(0xe55812)))
             .push(self.error_message())
             .push(match self {
-                Self::FailedToConnectToDaemon => button("OK (Enter)").on_press(Message::OK),
+                Self::FailedToConnectToDaemon => button("Exit (Enter)").on_press(Message::Exit),
                 Self::NoAudioDirectoryConfigured => button("Exit (Enter)").on_press(Message::Exit),
             })
             .spacing(10)
@@ -48,9 +48,13 @@ impl ErrorMenu {
                     key_code: KeyCode::Enter,
                     ..
                 }) => match self {
-                    Self::FailedToConnectToDaemon => Event::OpenCommandMenu,
+                    Self::FailedToConnectToDaemon => Event::Exit,
                     Self::NoAudioDirectoryConfigured => Event::Exit,
                 },
+                iced_native::Event::Keyboard(keyboard::Event::KeyPressed {
+                    key_code: KeyCode::Escape,
+                    ..
+                }) => Event::Exit,
                 _ => Event::None,
             },
         }

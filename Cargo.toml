@@ -3,6 +3,7 @@
 members = [
 	"daemon",
 	"client",
+  "communication",
 ]
 
 resolver = "2"

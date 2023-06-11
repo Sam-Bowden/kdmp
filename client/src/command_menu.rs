@@ -1,14 +1,19 @@
-use crate::{error_menu::ErrorMenu, event::Event, option::Option, request::Request, CurrentView};
+use crate::communication::RequestOps;
+use crate::{error_menu::ErrorMenu, event::Event, option::Option, CurrentView};
+use communication::{Request, Response};
 use iced::{
-    color,
+    color, keyboard,
     widget::{text, text_input::Id, Button, Column, Container, Scrollable, TextInput},
     Element, Length, Padding,
 };
+use iced_native::alignment::Horizontal;
+use iced_native::keyboard::KeyCode;
 
 pub struct CommandMenu {
     input: String,
     tracks: Vec<Option>,
     commands: Vec<Option>,
+    status: Response,
 }
 
 pub enum Mode {
@@ -22,6 +27,8 @@ pub enum Message {
     InputChanged(String),
     OptionPressed(usize),
     InputConfirmed,
+    EventOccurred(iced_native::Event),
+    Refresh,
 }
 
 impl CommandMenu {
@@ -31,10 +38,16 @@ impl CommandMenu {
             Err(e) => return CurrentView::ErrorMenu(e),
         };
 
+        let status = match Request::Status.send_command() {
+            Ok(s) => s,
+            Err(e) => return CurrentView::ErrorMenu(e),
+        };
+
         CurrentView::CommandMenu(CommandMenu {
             input: String::new(),
             tracks,
             commands: Self::get_commands(),
+            status,
         })
     }
 
@@ -46,11 +59,25 @@ impl CommandMenu {
             }
             Message::OptionPressed(_num) => Event::None,
             Message::InputConfirmed => self.execute(),
+            Message::EventOccurred(event) => match event {
+                iced_native::Event::Keyboard(keyboard::Event::KeyPressed {
+                    key_code: KeyCode::Escape,
+                    ..
+                }) => Event::Exit,
+                _ => Event::None,
+            },
+            Message::Refresh => {
+                self.status = match Request::Status.send_command() {
+                    Ok(s) => s,
+                    Err(e) => return Event::OpenErrorMenu(e),
+                };
+                Event::None
+            }
         }
     }
 
     pub fn view(&self) -> Element<Message> {
-        let mut components = self.input.split(" ");
+        let mut components = self.input.splitn(2, " ");
 
         let (mode, param) = match (components.next(), components.next()) {
             (Some("pl"), Some(track)) => (Mode::Music, track),
@@ -62,6 +89,7 @@ impl CommandMenu {
         let column = Column::new()
             .spacing(10)
             .align_items(iced::Alignment::Center)
+            .push(self.view_status())
             .push(self.view_entry())
             .push(self.view_title(&mode))
             .push(self.view_options(&mode, param));
@@ -71,6 +99,21 @@ impl CommandMenu {
             .width(Length::Fill)
             .padding(10)
             .into()
+    }
+
+    fn view_status(&self) -> Element<Message> {
+        match &self.status {
+            Response::Playing(track) => {
+                text(format!("Playing - {}", track)).horizontal_alignment(Horizontal::Center)
+            }
+            Response::Paused(track) => {
+                text(format!("Paused - {}", track)).horizontal_alignment(Horizontal::Center)
+            }
+            Response::Idle => text("Idle"),
+            Response::DaemonNotOnline => text("Daemon Offline"),
+            Response::DaemonCommunicationError => text("Daemon Communication Error"),
+        }
+        .into()
     }
 
     fn view_entry(&self) -> Element<Message> {
@@ -149,7 +192,7 @@ impl CommandMenu {
     }
 
     fn execute(&mut self) -> Event {
-        let mut command_components = self.input.split(" ");
+        let mut command_components = self.input.splitn(2, " ");
 
         let (command, argument) = (command_components.next(), command_components.next());
 
@@ -157,21 +200,30 @@ impl CommandMenu {
             Some("pl") | Some("play") => {
                 if let Some(arg) = argument {
                     if let Some(track) = self.tracks.iter().find(|s| s.starts_with(arg)) {
-                        Request::Play(track.get_path().clone()).send();
+                        Request::Play(track.get_path().clone()).send_command()
+                    } else {
+                        return Event::None;
                     }
+                } else {
+                    return Event::None;
                 }
-                Event::None
             }
-            Some("s") | Some("stop") => Request::Stop.send(),
-            Some("ps") | Some("pause") => Request::Pause.send(),
-            Some("r") | Some("resume") => Request::Resume.send(),
-            Some("n") | Some("next") => Request::Next.send(),
-            Some("e") | Some("exit") => Event::Exit,
+            Some("s") | Some("stop") => Request::Stop.send_command(),
+            Some("ps") | Some("pause") => Request::Pause.send_command(),
+            Some("r") | Some("resume") => Request::Resume.send_command(),
+            Some("n") | Some("next") => Request::Next.send_command(),
+            Some("e") | Some("exit") => return Event::Exit,
             _ => return Event::None,
         };
 
         self.input.clear();
 
-        result
+        match result {
+            Ok(response) => {
+                self.status = response;
+                Event::None
+            }
+            Err(e) => Event::OpenErrorMenu(e),
+        }
     }
 }
